@@ -58,5 +58,5 @@ fn main() {
 
     result.sort_by(|a, b| a.pcpu.partial_cmp(&b.pcpu).unwrap());
 
-    println!("{} : cpu: {:.1} | mem: {}", result[result.len()-1].cmd, result[result.len()-1].pcpu, result[result.len()-1].size);
+    println!("{} | cpu: {:.1}% | mem: {} Mb", result[result.len()-1].cmd, result[result.len()-1].pcpu, result[result.len()-1].size);
 }
