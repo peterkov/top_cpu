@@ -4,7 +4,7 @@ struct Process<'a> {
     pid:  &'a str,
     gid: &'a str,
     user: &'a str,
-    size: u32,
+    size: f32,
     pcpu: f32,
     cmd: &'a str,
 }
@@ -17,7 +17,7 @@ impl<'a> Process<'a> {
             pid: data[0],
             gid: data[1],
             user: data[2],
-            size: data[3].parse::<u32>().unwrap() / 1024,
+            size: data[3].parse::<f32>().unwrap(),
             pcpu: data[4].parse::<f32>().unwrap(),
             cmd: data[5]
         }
@@ -27,7 +27,7 @@ impl<'a> Process<'a> {
 fn main() {
     let mut result: Vec<Process> = vec![];
     let command = Command::new("ps")
-        .args(&["-Ao", "pid,pgrp,user,size,pcpu,comm"])
+        .args(&["-Ao", "pid,pgrp,user,%mem,pcpu,comm"])
         .stdout(Stdio::piped())
         .spawn().unwrap()
         .wait_with_output().unwrap()
@@ -56,5 +56,5 @@ fn main() {
 
     result.sort_by(|a, b| a.pcpu.partial_cmp(&b.pcpu).unwrap());
 
-    println!("{} | cpu: {:.1}% | mem: {} Mb", result[result.len()-1].cmd, result[result.len()-1].pcpu, result[result.len()-1].size);
+    println!("{} | cpu: {:.1}% | mem: {:.1}%", result[result.len()-1].cmd, result[result.len()-1].pcpu, result[result.len()-1].size);
 }
