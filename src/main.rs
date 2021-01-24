@@ -1,7 +1,5 @@
 use std::{process::{Command, Stdio}};
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Debug)]
 struct Process<'a> {
     pid:  &'a str,
     gid: &'a str,
