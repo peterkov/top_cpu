@@ -13,46 +13,43 @@ struct Process<'a> {
 
 impl<'a> Process<'a> {
     fn new(raw_line: &str) -> Process {
-        let asd: Vec<&str> = raw_line.split_ascii_whitespace().collect();
+        let data: Vec<&str> = raw_line.split_ascii_whitespace().collect();
+
         Process { 
-            pid: asd[0],
-            gid: asd[1],
-            user: asd[2],
-            size: asd[3].parse::<u32>().unwrap() / 1024,
-            pcpu: asd[4].parse::<f32>().unwrap(),
-            cmd: asd[5]
+            pid: data[0],
+            gid: data[1],
+            user: data[2],
+            size: data[3].parse::<u32>().unwrap() / 1024,
+            pcpu: data[4].parse::<f32>().unwrap(),
+            cmd: data[5]
         }
     }
 }
 
 fn main() {
-    let mut command = Command::new("ps");
-    command.args(&["-Ao", "pid,pgrp,user,size,pcpu,comm"]);
-    command.stdout(Stdio::piped());
-
-    let output = command
-        .spawn()
-        .unwrap()
-        .wait_with_output().unwrap().stdout;
-
-    let asd= String::from_utf8_lossy(&output[..]);
-    let mut lines: Vec<&str> = asd.split("\n").collect();
-    
+    let mut result: Vec<Process> = vec![];
+    let command = Command::new("ps")
+        .args(&["-Ao", "pid,pgrp,user,size,pcpu,comm"])
+        .stdout(Stdio::piped())
+        .spawn().unwrap()
+        .wait_with_output().unwrap()
+        .stdout;
+    let raw_string= String::from_utf8_lossy(&command[..]);
+    let mut lines: Vec<&str> = raw_string.split("\n").collect();
     let raw_processes = lines.drain(1..)
         .filter(|l| !l.is_empty())    
         .map(|l| Process::new(&l))
         .collect::<Vec<Process>>();
 
-    let mut result: Vec<Process> = vec![];
     raw_processes
         .into_iter()
         .fold::<&mut Vec<Process>, _>(&mut result, |res, p| {
-            let vbwe = res.into_iter().find(|l| l.gid == p.gid);
-            match vbwe {
+            let process_line = res.into_iter().find(|l| l.gid == p.gid);
+            match process_line {
                 Some(_) => {
-                    let asd = vbwe.unwrap();
-                    asd.size += p.size;
-                    asd.pcpu += p.pcpu;
+                    let grouped_item = process_line.unwrap();
+                    grouped_item.size += p.size;
+                    grouped_item.pcpu += p.pcpu;
                 }
                 None => res.push(p)
             }
